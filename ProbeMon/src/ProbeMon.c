@@ -365,17 +365,17 @@ void* do_print(void *arg)
             {
         		if(ftype.frame_type == RTW_IEEE80211_FTYPE_CTL)
             	{
-        	        for(counter = 0 ; counter < MAX_RECORDS ; counter++)
-        	        {
-						if(ftype.frame_sub_type == RTW_IEEE80211_STYPE_CTS)
-						{
+					if(ftype.frame_sub_type == RTW_IEEE80211_STYPE_CTS)
+					{
+						for(counter = 0 ; counter < MAX_RECORDS ; counter++)
+		        	    {
 							is_not_equal = memcmp(&stations[counter].mac_addr[0], pmgmnt_hdr->addr1, (sizeof(uint8_t) * ETH_ALEN) );
 							if(is_not_equal == 0)
 							{
 								print_frame++;
 							}
-						}
-        	        }
+		        	    }
+					}
             	}
             }
 
