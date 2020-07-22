@@ -9,11 +9,19 @@
 #include <pthread.h>
 #include "ProbeMon.h"
 
+#define MAX_RECORDS 3
+#define ETH_ALEN 6
+struct station_info {
+    int8_t mac_addr[20];
+    char mac[20];
+    char hint[255];
+};
+
+struct station_info stations[3];
 
 CIRCLEQ_HEAD(circleq, entry) rx_head;
 CIRCLEQ_HEAD(circleq_disp, entry) display_head;
-int8_t remote_mac_arr[6];
-char *remote_device = NULL;
+char *csv_file = NULL;
 char *mode = NULL;
 struct circleq *head_rx;
 struct circleq_disp *head_dsip;
@@ -31,6 +39,56 @@ void TermHandler(int sig)
 	isClosing = 1;
 	pcap_breakloop(handle);
 	sem_post(&tx_sem);
+}
+
+//that's a rip
+const char* getfield(char* line, int num)
+{
+    const char* tok;
+    for (tok = strtok(line, ",");
+            tok && *tok;
+            tok = strtok(NULL, ",\n"))
+    {
+        if (!--num)
+            return tok;
+    }
+    return NULL;
+}
+
+void parse_csv_file(char* csv_file)
+{
+    struct station_info stations[3];
+    int count = 0;
+    char line[275];
+    FILE* mac_file = fopen(csv_file, "r");
+    if(mac_file == NULL)
+    {
+    	printf("Can't open csv file\n");
+    	exit(1);
+    }
+
+    while (fgets(line, 275, mac_file))
+    {
+        char* tmp = strdup(line);
+        sprintf(&stations[count].mac[0],"%s", getfield(tmp, 1));
+        tmp = strdup(line);
+        sprintf(&stations[count].hint[0],"%s",getfield(tmp, 2));
+        free(tmp);
+        sscanf(&stations[count].mac[0], "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &stations[count].mac_addr[0], &stations[count].mac_addr[1],\
+        		&stations[count].mac_addr[2], &stations[count].mac_addr[3], &stations[count].mac_addr[4], &stations[count].mac_addr[5]);
+        count++;
+        if(count >= MAX_RECORDS){
+            break;
+        }
+    }
+    fclose(mac_file);
+    printf("MAC-%s ", stations[0].mac);
+    printf("Hint-%s\n", stations[0].hint);
+    printf("MAC-%s ", stations[1].mac);
+    printf("Hint-%s\n", stations[1].hint);
+    printf("MAC-%s ", stations[2].mac);
+    printf("Hint-%s\n", stations[2].hint);
+
 }
 
 void frame_ready(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char *packet)
@@ -305,20 +363,20 @@ void* do_print(void *arg)
         	}
         	if(capture_mode == cts)
             {
-               	if(remote_device != NULL)
-               	{
-            		if(ftype.frame_type == RTW_IEEE80211_FTYPE_CTL)
-            		{
-            			if(ftype.frame_sub_type == RTW_IEEE80211_STYPE_CTS)
-            			{
-                           	is_not_equal = memcmp(remote_mac_arr, pmgmnt_hdr->addr1, sizeof(remote_mac_arr) );
-                           	if(is_not_equal == 0)
-                           	{
-                           		print_frame++;
-                           	}
-            			}
-            		}
-               	}
+        		if(ftype.frame_type == RTW_IEEE80211_FTYPE_CTL)
+            	{
+        	        for(counter = 0 ; counter < MAX_RECORDS ; counter++)
+        	        {
+						if(ftype.frame_sub_type == RTW_IEEE80211_STYPE_CTS)
+						{
+							is_not_equal = memcmp(&stations[counter].mac_addr[0], pmgmnt_hdr->addr1, (sizeof(uint8_t) * ETH_ALEN) );
+							if(is_not_equal == 0)
+							{
+								print_frame++;
+							}
+						}
+        	        }
+            	}
             }
 
         	if(print_frame > 0)
@@ -374,7 +432,7 @@ int main(int argc, char *argv[])
     char *dev, errbuf[PCAP_ERRBUF_SIZE];
 
     dev = NULL;
-    while((opt = getopt(argc, argv, "m:d:l:")) != -1)
+    while((opt = getopt(argc, argv, "m:f:l:")) != -1)
     {
         switch(opt)
         {
@@ -383,9 +441,9 @@ int main(int argc, char *argv[])
 				printf("Using %s\n", optarg);
 				dev = optarg;
 				break;
-            case 'd':
-                printf("Listening for station address %s\n", optarg);
-                remote_device = optarg;
+            case 'f':
+                printf("csv file name %s\n", optarg);
+                csv_file = optarg;
                 break;
             case 'm':
                 printf("Mode is %s\n", optarg);
@@ -401,10 +459,7 @@ int main(int argc, char *argv[])
     	printf("\nYou must select a mode -m probes, cts, or all\n");
     	exit(1);
     }
-    if(remote_device != NULL)
-    {
-    	 sscanf(remote_device, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &remote_mac_arr[0], &remote_mac_arr[1], &remote_mac_arr[2], &remote_mac_arr[3], &remote_mac_arr[4], &remote_mac_arr[5]);
-    }
+
     if(strcmp(mode, "all") == 0)
     {
     	capture_mode = all;
@@ -416,6 +471,13 @@ int main(int argc, char *argv[])
     else if(strcmp(mode, "cts") == 0)
     {
     	capture_mode = cts;
+        if(csv_file == NULL)
+        {
+        	printf("\nYou must select a csv file when using the cts option\n");
+        	exit(1);
+        }
+        parse_csv_file(csv_file);
+        //sscanf(remote_device, "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &remote_mac_arr[0], &remote_mac_arr[1], &remote_mac_arr[2], &remote_mac_arr[3], &remote_mac_arr[4], &remote_mac_arr[5]);
     }
     else
     {
