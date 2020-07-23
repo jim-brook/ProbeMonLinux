@@ -373,6 +373,7 @@ void* do_print(void *arg)
 							if(is_not_equal == 0)
 							{
 								print_frame++;
+								break;
 							}
 		        	    }
 					}
