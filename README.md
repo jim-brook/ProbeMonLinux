@@ -1,5 +1,5 @@
 # ProbeMonLinux
-Captures probe request and response frames sent by 802.11 adapters. Catches cts frames from stations specfied in a csv file.
+Captures probe request and response frames sent by 802.11 adapters. Catches cts frames from stations specfied in a csv file. This project is not the same as the Windows version.
 
 ## Usage
 ./ProbeMon -m[all, probes, cts] -l[interface] -f[csv file]
