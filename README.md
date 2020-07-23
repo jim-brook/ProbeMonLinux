@@ -6,7 +6,10 @@ Captures probe request and response frames sent by 802.11 adapters. Catches cts 
 
 The csv file should be in 2 column comma delimited format with target station address first and a text hint: "01:02:03:04:05:06,My iPhone". You can have upto 3 stations/hints.
 
-### Requirements
+### Example
+./ProbeMon -mcts -lwlan0 -fstations.csv
+
+#### Requirements
 Monitor mode capture device and pcap installed
 
 #### Other
