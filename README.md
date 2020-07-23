@@ -4,7 +4,7 @@ Captures probe request and response frames sent by 802.11 adapters. Catches cts 
 ## Usage
 ./ProbeMon -m<all, probes, cts> -l<interface> -f<csv file>
 
-The csv file should be in 2 column comma delimited format with target station address first and a test hint: 01:02:03:04:05:06,My iPhone
+The csv file should be in 2 column comma delimited format with target station address first and a text hint: "01:02:03:04:05:06,My iPhone"
 
 ### Requirements
 Monitor mode capture device and pcap installed
