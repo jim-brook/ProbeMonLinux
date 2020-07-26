@@ -57,7 +57,6 @@ const char* getfield(char* line, int num)
 
 void parse_csv_file(char* csv_file)
 {
-    struct station_info stations[3];
     int count = 0;
     char line[275];
     FILE* mac_file = fopen(csv_file, "r");
@@ -76,18 +75,14 @@ void parse_csv_file(char* csv_file)
         free(tmp);
         sscanf(&stations[count].mac[0], "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &stations[count].mac_addr[0], &stations[count].mac_addr[1],\
         		&stations[count].mac_addr[2], &stations[count].mac_addr[3], &stations[count].mac_addr[4], &stations[count].mac_addr[5]);
+        printf("%s\t", stations[count].mac);
+        printf("%s\n", stations[count].hint);
         count++;
         if(count >= MAX_RECORDS){
             break;
         }
     }
     fclose(mac_file);
-    printf("MAC-%s ", stations[0].mac);
-    printf("Hint-%s\n", stations[0].hint);
-    printf("MAC-%s ", stations[1].mac);
-    printf("Hint-%s\n", stations[1].hint);
-    printf("MAC-%s ", stations[2].mac);
-    printf("Hint-%s\n", stations[2].hint);
 
 }
 
@@ -369,7 +364,7 @@ void* do_print(void *arg)
 					{
 						for(counter = 0 ; counter < MAX_RECORDS ; counter++)
 		        	    {
-							is_not_equal = memcmp(&stations[counter].mac_addr[0], pmgmnt_hdr->addr1, (sizeof(uint8_t) * ETH_ALEN) );
+							is_not_equal = memcmp(&stations[counter].mac_addr[0], &pmgmnt_hdr->addr1[0], (sizeof(uint8_t) * ETH_ALEN) );
 							if(is_not_equal == 0)
 							{
 								print_frame++;
@@ -379,7 +374,7 @@ void* do_print(void *arg)
 					}
             	}
             }
-
+        	//print_frame needs to be replaced with a bitmask for fine grain printing options
         	if(print_frame > 0)
         	{
 				printf("%s    %s    ",ftype_as_string, fsubtype_as_string);
