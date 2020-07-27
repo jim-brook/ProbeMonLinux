@@ -374,7 +374,7 @@ void* do_print(void *arg)
 					}
             	}
             }
-        	//print_frame needs to be replaced with a bitmask for fine grain printing options
+        	//print_frame a bitmask
         	if(print_frame > 0)
         	{
 				printf("%s    %s    ",ftype_as_string, fsubtype_as_string);
