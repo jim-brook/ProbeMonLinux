@@ -19,7 +19,8 @@ Currently working on a scapy injection script
 Inject a rts frame using scapy.
 
 ## Usage
-inject_rts [interface] [loop delay time in seconds] [loops] [csv file]
+inject_rts [interface] [loop delay time in seconds] [loops] [csv file] 
+The csv file should be in 2 column comma delimited format with target station address first, then the source address You can have upto 3 stations/hints. The source address will be the one ProbeMon listens for.
 
 ### Example
 python3 inject_rts.py wlan1 0.10 0 /home/MyHome/macs_scpy.csv
