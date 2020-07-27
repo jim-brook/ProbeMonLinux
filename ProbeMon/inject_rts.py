@@ -3,7 +3,7 @@ from scapy.all import *
 import argparse
 import csv
 
-class InjectCts:
+class InjectRts:
     Stations = []
 
     CsvFileName = ""
@@ -61,5 +61,5 @@ if __name__ == "__main__":
     parser.add_argument("csv", help="csv file name")
 
     args = parser.parse_args()    
-    inj = InjectCts(args.iface, args.delay, args.loop, args.csv)
+    inj = InjectRts(args.iface, args.delay, args.loop, args.csv)
     inj.Start()
