@@ -11,6 +11,7 @@
 
 #define MAX_RECORDS 3
 #define ETH_ALEN 6
+
 struct station_info {
     int8_t mac_addr[20];
     char mac[20];
