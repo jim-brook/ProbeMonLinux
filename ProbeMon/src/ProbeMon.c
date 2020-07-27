@@ -57,7 +57,6 @@ const char* getfield(char* line, int num)
 
 void parse_csv_file(char* csv_file)
 {
-    struct station_info stations[3];
     int count = 0;
     char line[275];
     FILE* mac_file = fopen(csv_file, "r");
@@ -76,18 +75,14 @@ void parse_csv_file(char* csv_file)
         free(tmp);
         sscanf(&stations[count].mac[0], "%hhx:%hhx:%hhx:%hhx:%hhx:%hhx", &stations[count].mac_addr[0], &stations[count].mac_addr[1],\
         		&stations[count].mac_addr[2], &stations[count].mac_addr[3], &stations[count].mac_addr[4], &stations[count].mac_addr[5]);
+        printf("%s\t", stations[count].mac);
+        printf("%s\n", stations[count].hint);
         count++;
         if(count >= MAX_RECORDS){
             break;
         }
     }
     fclose(mac_file);
-    printf("MAC-%s ", stations[0].mac);
-    printf("Hint-%s\n", stations[0].hint);
-    printf("MAC-%s ", stations[1].mac);
-    printf("Hint-%s\n", stations[1].hint);
-    printf("MAC-%s ", stations[2].mac);
-    printf("Hint-%s\n", stations[2].hint);
 
 }
 
@@ -95,7 +90,7 @@ void frame_ready(u_char *args, const struct pcap_pkthdr *pkthdr, const u_char *p
 {
 	struct entry *e;
 	e = malloc(sizeof (struct entry));
-    e->packet_size = pkthdr->len;
+        e->packet_size = pkthdr->len;
 	e->packet = (u_char*)packet;
 	pthread_mutex_lock(&disp_lock);
 	CIRCLEQ_INSERT_HEAD(&rx_head, e, entries);
@@ -261,14 +256,14 @@ void get_ext_subtype(char* sub_type_string, uint32_t sub_type)
 }
 void* do_print(void *arg)
 {
- 	struct ieee80211_radiotap_header* radio_header;
- 	struct ieee80211_hdr *pmgmnt_hdr;
- 	int is_not_equal = 0;
- 	int counter = 0;
- 	char str[19];
- 	char ftype_as_string[255];
- 	char fsubtype_as_string[255];
- 	struct frame_types_desc ftype;
+    struct ieee80211_radiotap_header* radio_header;
+    struct ieee80211_hdr *pmgmnt_hdr;
+    int is_not_equal = 0;
+    int counter = 0;
+    char str[19];
+    char ftype_as_string[255];
+    char fsubtype_as_string[255];
+    struct frame_types_desc ftype;
     struct entry *src;
     struct entry *dest;
     struct entry *disp;
@@ -361,25 +356,25 @@ void* do_print(void *arg)
 					}
 				}
         	}
-        	if(capture_mode == cts)
+            if(capture_mode == cts)
             {
-        		if(ftype.frame_type == RTW_IEEE80211_FTYPE_CTL)
+        	if(ftype.frame_type == RTW_IEEE80211_FTYPE_CTL)
             	{
-					if(ftype.frame_sub_type == RTW_IEEE80211_STYPE_CTS)
+			if(ftype.frame_sub_type == RTW_IEEE80211_STYPE_CTS)
+			{
+				for(counter = 0 ; counter < MAX_RECORDS ; counter++)
+		        	{
+					is_not_equal = memcmp(&stations[counter].mac_addr[0], &pmgmnt_hdr->addr1[0], (sizeof(uint8_t) * ETH_ALEN) );
+					if(is_not_equal == 0)
 					{
-						for(counter = 0 ; counter < MAX_RECORDS ; counter++)
-		        	    {
-							is_not_equal = memcmp(&stations[counter].mac_addr[0], pmgmnt_hdr->addr1, (sizeof(uint8_t) * ETH_ALEN) );
-							if(is_not_equal == 0)
-							{
-								print_frame++;
-								break;
-							}
-		        	    }
+						print_frame++;
+						break;
 					}
+		        	}
+			}
             	}
             }
-
+        	//print_frame needs to be replaced with a bitmask for fine grain printing options
         	if(print_frame > 0)
         	{
 				printf("%s    %s    ",ftype_as_string, fsubtype_as_string);
@@ -423,13 +418,12 @@ void* do_print(void *arg)
  */
 int main(int argc, char *argv[])
 {
-	char *pcaperr;
-
-	struct entry *desc;
-	int res = 0;
-	int type = 0;
-	int opt;
-	void *ret;
+    char *pcaperr;
+    struct entry *desc;
+    int res = 0;
+    int type = 0;
+    int opt;
+    void *ret;
     char *dev, errbuf[PCAP_ERRBUF_SIZE];
 
     dev = NULL;
@@ -438,10 +432,10 @@ int main(int argc, char *argv[])
         switch(opt)
         {
 
-			case 'l':
-				printf("Using %s\n", optarg);
-				dev = optarg;
-				break;
+	    case 'l':
+		printf("Using %s\n", optarg);
+		dev = optarg;
+		break;
             case 'f':
                 printf("csv file name %s\n", optarg);
                 csv_file = optarg;
@@ -488,10 +482,10 @@ int main(int argc, char *argv[])
     isClosing = 0;
     sem_init(&tx_sem, 0 , -1);
     pthread_mutex_init(&disp_lock, NULL);
-	CIRCLEQ_INIT(&rx_head);
-	CIRCLEQ_INIT(&display_head);
-	signal(SIGQUIT, TermHandler);
-	signal(SIGINT,TermHandler);
+    CIRCLEQ_INIT(&rx_head);
+    CIRCLEQ_INIT(&display_head);
+    signal(SIGQUIT, TermHandler);
+    signal(SIGINT,TermHandler);
     handle = pcap_create(dev, errbuf);
     if(handle == NULL)
     {
@@ -536,19 +530,19 @@ int main(int argc, char *argv[])
     }
 
     pthread_join(disp_thread, &ret);
-	pcap_close(handle);
-	while (!CIRCLEQ_EMPTY(&rx_head))
+    pcap_close(handle);
+    while (!CIRCLEQ_EMPTY(&rx_head))
     {
-	    desc = CIRCLEQ_FIRST(&rx_head);
+	desc = CIRCLEQ_FIRST(&rx_head);
     	free(desc);
     }
-	while (!CIRCLEQ_EMPTY(&display_head))
+    while (!CIRCLEQ_EMPTY(&display_head))
     {
-	    desc = CIRCLEQ_FIRST(&display_head);
+	desc = CIRCLEQ_FIRST(&display_head);
     	free(desc);
     }
-	printf("\nExiting\n");
-	return 0;
+    printf("\nExiting\n");
+    return 0;
 }
 
 
