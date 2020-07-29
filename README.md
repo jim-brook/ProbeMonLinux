@@ -10,7 +10,7 @@ The csv file should be in 2 column comma delimited format with target station ad
 ./ProbeMon -mcts -lwlan0 -fstations.csv
 
 #### Requirements
-Monitor mode capture device and pcap installed. Tested with Kali 2020-6, AWUS036ACH, Aircrack rtl8812au dkms driver from https://github.com/aircrack-ng/rtl8812au
+Monitor mode capture device and pcap installed. Tested with Kali 2020-2, AWUS036ACH, Aircrack rtl8812au dkms driver from https://github.com/aircrack-ng/rtl8812au
 
 #### Other
 Currently working on a scapy injection script
@@ -27,5 +27,5 @@ The csv file should be in 2 column comma delimited format with target station ad
 python3 inject_rts.py wlan1 0.10 0 /home/MyHome/macs_scpy.csv
 
 #### Requirements
-RTS Injection capable device and scapy installed. Tested with Kali 2020-6, AWUS036ACH, Aircrack rtl8812au dkms driver from https://github.com/aircrack-ng/rtl8812au
+RTS Injection capable device and scapy installed. Tested with Kali 2020-2, AWUS036ACH, Aircrack rtl8812au dkms driver from https://github.com/aircrack-ng/rtl8812au
 
