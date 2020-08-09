@@ -18,7 +18,7 @@ struct station_info {
 };
 
 struct station_info stations[3];
-
+int8_t rssi_location;
 CIRCLEQ_HEAD(circleq, entry) rx_head;
 CIRCLEQ_HEAD(circleq_disp, entry) display_head;
 char *csv_file = NULL;
@@ -304,7 +304,14 @@ void* do_print(void *arg)
 
         	get_frame_types(pmgmnt_hdr->frame_control, &ftype);
         	max_len = radio_header + radio_header->it_len;
-        	rssi_ptr = (int8_t*) radio_header + RSSI_OFFSET;
+        	if(rssi_location == 0)
+        	{
+        		rssi_ptr = (int8_t*) radio_header + RSSI_OFFSET;
+
+        	} else {
+
+        		rssi_ptr = (int8_t*) radio_header + rssi_location;
+        	}
         	if((void*)rssi_ptr <= max_len)
         	{
         		rssi = *rssi_ptr;
@@ -418,17 +425,17 @@ void* do_print(void *arg)
  */
 int main(int argc, char *argv[])
 {
-	char *pcaperr;
-
+	char *pcaperr, *rssi_offset;
 	struct entry *desc;
 	int res = 0;
 	int type = 0;
 	int opt;
 	void *ret;
     char *dev, errbuf[PCAP_ERRBUF_SIZE];
-
+    rssi_offset = NULL;
+    rssi_location = 0;
     dev = NULL;
-    while((opt = getopt(argc, argv, "m:f:l:")) != -1)
+    while((opt = getopt(argc, argv, "m:f:l:o:")) != -1)
     {
         switch(opt)
         {
@@ -445,10 +452,18 @@ int main(int argc, char *argv[])
                 printf("Mode is %s\n", optarg);
                 mode = optarg;					//probes, all, cts
                 break;
+            case 'o':
+                printf("rssi offset %s\n", optarg);
+                rssi_offset = optarg;
+                break;
             case '?':
                 //printf("unknown option: %c\n", optopt);
                 break;
         }
+    }
+    if(rssi_offset != NULL)
+    {
+    	rssi_location = atoi(rssi_offset);
     }
     if(mode == NULL)
     {
